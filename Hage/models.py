@@ -47,3 +47,20 @@ class carrito_producto(models.Model):
     
     def __str__(self):
         return self.cantidad + ' ' + self.producto.name
+    
+class orden(models.Model):
+    estados = (
+        ('pendiente', 'pendiente'),
+        ('enviado', 'enviado'),
+        ('entregado', 'entregado')
+    )
+    
+    usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    carrito = models.ForeignKey('carrito', on_delete=models.CASCADE)
+    carrito_detalle = models.ForeignKey('carrito_producto', on_delete=models.CASCADE, null=True)
+    direccion = models.CharField(max_length=1000)
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(max_length=20, choices=estados, default='pendiente')
+    
+    def __str__(self):
+        return self.usuario.username + ' ' + self.estado

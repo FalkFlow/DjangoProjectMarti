@@ -1,12 +1,11 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+from django.conf import settings
 
 # Create your models here.
 class usuarios(models.Model):
-    username = models.CharField(max_length=100) # Nombre de usuario
-    name = models.CharField(max_length=100) # Nombre 
-    last_name = models.CharField(max_length=100) # Apellido
-    email = models.EmailField()
-    password = models.CharField(max_length=100)
+    username = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    rol = models.CharField(max_length=20, choices=settings.ROLES)
     
     def __str__(self):
         return self.name
@@ -14,7 +13,7 @@ class usuarios(models.Model):
 
 class categorias(models.Model):
     name = models.CharField(max_length=100)
-    activate = models.BooleanField() # En caso de que la categoria no este disponible
+    activate = models.BooleanField(default=True) # En caso de que la categoria no este disponible
     
     def __str__(self):
         return self.name
@@ -23,19 +22,28 @@ class categorias(models.Model):
 class productos(models.Model):
     name = models.CharField(max_length=100)
     categoria = models.ForeignKey('categorias', on_delete=models.CASCADE)
-    precio = models.FloatField()
+    precio = models.IntegerField(default=0)
     imagen = models.CharField(max_length=1000) # Guardar imagen en nube y guardar url
-    activate = models.BooleanField() # En caso de que el producto no este disponible
-    destacado = models.BooleanField() # Mostrar en la pagina principal
+    activate = models.BooleanField(default=True) # En caso de que el producto no este disponible
+    destacado = models.BooleanField(default=False) # Mostrar en la pagina principal
     
     def __str__(self):
         return self.name
     
 class carrito(models.Model):
-    usuario = models.ForeignKey('usuarios', on_delete=models.CASCADE)
-    producto = models.ForeignKey('productos', on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
+    usuario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.cantidad + ' ' + self.producto.name
 
+class carrito_producto(models.Model):
+    carrito = models.ForeignKey('carrito', on_delete=models.CASCADE)
+    producto = models.ManyToManyField('productos')
+    cantidad = models.IntegerField(default=1)
+    precio_unitario = models.IntegerField(default=0)
+    subtotal = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return self.cantidad + ' ' + self.producto.name
